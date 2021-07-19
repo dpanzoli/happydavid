@@ -1,0 +1,74 @@
+<!DOCTYPE html> 
+ <html lang="fr">
+  <head>
+   <title>Happy David</title> 
+   <meta charset="UTF-8">
+   <style type="text/css">
+   
+	#cvs {
+		display:none;
+	}
+	
+   </style>
+   <script src="http://code.jquery.com/jquery-1.8.3.js"></script>
+   <script>
+   
+	$(function() {
+	
+		navigator.mediaDevices.getUserMedia({ audio: false, video: { width: 400 } }).then(function(mediaStream) {
+
+			var video = document.getElementById('sourcevid');
+			video.srcObject = mediaStream;
+
+			var tracks = mediaStream.getTracks();
+
+			//$("#message").html('message: '+tracks[0].label+' connecté');
+
+			console.log(tracks[0].label)
+			console.log(mediaStream)
+
+			video.onloadedmetadata = function(e) {
+				video.play();
+			};
+		});
+		
+		setInterval(snap, 3000);
+	});
+	
+	//Take a screenshot every 3 seconds and get emotion background
+	function snap() {
+	
+		var vivi = document.getElementById('sourcevid');
+		var canvas1 = document.getElementById('cvs')
+		var ctx = canvas1.getContext('2d');
+		canvas1.height=vivi.videoHeight
+		canvas1.width=vivi.videoWidth
+		ctx.drawImage(vivi, 0,0, vivi.videoWidth, vivi.videoHeight);
+
+		canvas1.toBlob(function(blob) {
+			
+			var formImage = new FormData();
+			formImage.append('image_a', blob, 'image_a.jpg');
+			var ajax = new XMLHttpRequest();
+			ajax.open("POST","/upload",true);
+			ajax.onreadystatechange=function(){
+				if (ajax.readyState == 4 && ajax.status==200){
+					console.log(ajax.responseText);
+				}
+			}
+			ajax.onerror=function() {
+				console.log("La requette a échoué")
+			}
+			ajax.send(formImage);
+		},
+		'image/jpeg');
+	}
+   </script>
+   
+  </head>
+  <body>
+	<video id="sourcevid" width='400' autoplay="true"></video>
+	<canvas id="cvs"></canvas>
+  </body>
+ </html>
+ 

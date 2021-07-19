@@ -7,7 +7,9 @@ const PORT = 3000;
 
 app.use(express.static('public'));
 
-app.post('/upload', upload.single('photo'), (req, res) => {
+app.use(express.static('uploads/images'));
+
+app.post('/upload', upload.single('image_a'), (req, res) => {
     if(req.file) {
         res.json(req.file);
     }
