@@ -5,16 +5,38 @@
    <meta charset="UTF-8">
    <style type="text/css">
    
-	#cvs {
-		width: 432px;
+	élément {
 		height: 240px;
 	}
+
+#sourcevid, canvas {
+	width: 432px;
+	height: 240px;
+	display: inline-block;
+	vertical-align: top;
+}
+
+#bouton, .mood {
+	display: inline-block;
+	width: 200px;
+	height: 150px;
+	padding-top: 100px;
+	padding-left: 30px;
+}
+
+button {
+	width: 150px;
+	height: 50px;
+	font-size: 18px;
+}
 	
    </style>
    <script src="http://code.jquery.com/jquery-1.8.3.js"></script>
    <script>
    
 	$(function() {
+	
+		$('button').hide();
 	
 		navigator.mediaDevices.getUserMedia({ audio: false, video: { width: 400 } }).then(function(mediaStream) {
 
@@ -30,8 +52,13 @@
 
 			video.onloadedmetadata = function(e) {
 				video.play();
-				snap()
+				$('button').show();
+				//snap()
 			};
+		});
+		
+		$('button').click(function() {
+			snap();
 		});
 		
 		//setInterval(snap, 3000);
@@ -42,8 +69,11 @@
 	function snap() {
 	
 		var vivi = document.getElementById('sourcevid');
-		var canvas = document.getElementById('cvs')
-		var ctx = canvas1.getContext('2d');
+		
+		$('<div class="photo"><canvas></canvas><div class="mood"><h1>?</h1></div></div>').appendTo('#photos');
+		var canvasList = document.getElementsByTagName('canvas');
+		var canvas = canvasList[canvasList.length-1];
+		var ctx = canvas.getContext('2d');
 		canvas.height=vivi.videoHeight
 		canvas.width=vivi.videoWidth
 		ctx.drawImage(vivi, 0,0, vivi.videoWidth, vivi.videoHeight);
@@ -59,7 +89,7 @@
 			formImage.set('api_secret', '7l90frqqgrqa5pp1qi805s3jpp');
 			
 			formImage.set('0', blob, 'photo.jpg');
-			
+
 			$.ajax({
 				type: 'POST',
 				url: 'http://api.skybiometry.com/fc/faces/detect.json',
@@ -68,13 +98,17 @@
 				processData: false,
 				contentType: false,
 				success: function(data) {
-					console.log(data.photos[0].tags[0].attributes.mood);
+					let mood = data.photos[0].tags[0].attributes.mood;
+					console.log(mood);
+					$('.photo:last .mood h1').html(mood.value);
+					window.scrollTo(0,document.body.scrollHeight);
 				},
 				error: function(_, e, m) {
 					console.log(e);
 					console.log(m);
 				}
 			});
+
 		},
 		'image/jpeg');
 	}
@@ -84,8 +118,13 @@
   <body>
 	<div id="photos">
 	</div>
-	<video id="sourcevid" width='400' autoplay="true"></video>
-	<canvas id="cvs"></canvas>
+	<div id="capture">
+		<video id="sourcevid" autoplay="true"></video>
+		<div id="bouton">
+			<button>Capture</button>
+		</div>
+	</div>
+	
   </body>
  </html>
  
