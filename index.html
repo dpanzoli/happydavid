@@ -6,7 +6,8 @@
    <style type="text/css">
    
 	#cvs {
-		display:none;
+		width: 432px;
+		height: 240px;
 	}
 	
    </style>
@@ -29,37 +30,51 @@
 
 			video.onloadedmetadata = function(e) {
 				video.play();
+				snap()
 			};
 		});
 		
-		setInterval(snap, 3000);
+		//setInterval(snap, 3000);
+		
 	});
 	
 	//Take a screenshot every 3 seconds and get emotion background
 	function snap() {
 	
 		var vivi = document.getElementById('sourcevid');
-		var canvas1 = document.getElementById('cvs')
+		var canvas = document.getElementById('cvs')
 		var ctx = canvas1.getContext('2d');
-		canvas1.height=vivi.videoHeight
-		canvas1.width=vivi.videoWidth
+		canvas.height=vivi.videoHeight
+		canvas.width=vivi.videoWidth
 		ctx.drawImage(vivi, 0,0, vivi.videoWidth, vivi.videoHeight);
 
-		canvas1.toBlob(function(blob) {
-			
+		canvas.toBlob(function(blob) {
+	
 			var formImage = new FormData();
-			formImage.append('image_a', blob, 'image_a.jpg');
-			var ajax = new XMLHttpRequest();
-			ajax.open("POST","/upload",true);
-			ajax.onreadystatechange=function(){
-				if (ajax.readyState == 4 && ajax.status==200){
-					console.log(ajax.responseText);
+			formImage.set('detector', 'agressive');
+			formImage.set('attributes', 'all');
+			formImage.set('detect_all_feature_points', false);
+			formImage.set('force_reprocess_image', true);
+			formImage.set('api_key', 'u4a53tef0gh0met9c687in7mk');
+			formImage.set('api_secret', '7l90frqqgrqa5pp1qi805s3jpp');
+			
+			formImage.set('0', blob, 'photo.jpg');
+			
+			$.ajax({
+				type: 'POST',
+				url: 'http://api.skybiometry.com/fc/faces/detect.json',
+				data: formImage,
+				dataType: 'json',
+				processData: false,
+				contentType: false,
+				success: function(data) {
+					console.log(data.photos[0].tags[0].attributes.mood);
+				},
+				error: function(_, e, m) {
+					console.log(e);
+					console.log(m);
 				}
-			}
-			ajax.onerror=function() {
-				console.log("La requette a échoué")
-			}
-			ajax.send(formImage);
+			});
 		},
 		'image/jpeg');
 	}
@@ -67,6 +82,8 @@
    
   </head>
   <body>
+	<div id="photos">
+	</div>
 	<video id="sourcevid" width='400' autoplay="true"></video>
 	<canvas id="cvs"></canvas>
   </body>
